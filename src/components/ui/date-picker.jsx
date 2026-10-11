@@ -33,8 +33,8 @@ export function DatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-between font-normal border-gray-600 bg-gray-700 text-white hover:bg-gray-600 hover:text-white",
-            !selected && "text-gray-400",
+            "w-full justify-between font-normal border-input bg-muted text-foreground hover:bg-muted hover:text-foreground",
+            !selected && "text-muted-foreground",
             className,
           )}
         >
@@ -45,7 +45,7 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto overflow-hidden p-0 bg-gray-800 border-gray-600"
+        className="w-auto overflow-hidden p-0 bg-card border-input"
         align="start"
       >
         <Calendar

@@ -41,7 +41,7 @@ function getTaskStyle(duration) {
   if (hours >= 4) {
     return {
       border: "border-r-4 border-purple-500",
-      bg: "bg-purple-900/20",
+      bg: "bg-violet-500/10",
       badge: "purple",
       icon: "💪",
     };
@@ -49,7 +49,7 @@ function getTaskStyle(duration) {
   if (hours >= 2) {
     return {
       border: "border-r-4 border-orange-500",
-      bg: "bg-orange-900/20",
+      bg: "bg-orange-500/10",
       badge: "warning",
       icon: "🎯",
     };
@@ -57,14 +57,14 @@ function getTaskStyle(duration) {
   if (hours >= 1) {
     return {
       border: "border-r-4 border-green-500",
-      bg: "bg-green-900/20",
+      bg: "bg-emerald-500/10",
       badge: "success",
       icon: "✅",
     };
   }
   return {
     border: "border-r-4 border-blue-500",
-    bg: "bg-blue-900/20",
+    bg: "bg-sky-500/10",
     badge: "blue",
     icon: "⚡",
   };
@@ -157,7 +157,7 @@ export default function Activities() {
               <div className="space-y-2">
                 <Label>بحث نصي</Label>
                 <div className="relative">
-                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -248,7 +248,7 @@ export default function Activities() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {loading ? "..." : `${allActivities.length} نتيجة`}
               </p>
               {hasFilters && (
@@ -274,7 +274,7 @@ export default function Activities() {
           <Card>
             <CardContent className="py-12 text-center">
               <div className="text-5xl mb-4">{hasFilters ? "🔍" : "📝"}</div>
-              <h2 className="text-xl font-bold text-white mb-4">
+              <h2 className="text-xl font-bold text-foreground mb-4">
                 {hasFilters ? "مفيش نتائج للفلتر ده" : "لا توجد أي أنشطة بعد"}
               </h2>
               {!hasFilters && (
@@ -304,12 +304,12 @@ export default function Activities() {
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
                             <span className="text-xl shrink-0">{style.icon}</span>
-                            <h3 className="font-medium text-base sm:text-lg truncate text-white">
+                            <h3 className="font-medium text-base sm:text-lg truncate text-foreground">
                               {activity.title}
                             </h3>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-300 whitespace-nowrap">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
                               {activity.time}
                             </span>
                             <Badge variant={style.badge}>
@@ -318,7 +318,7 @@ export default function Activities() {
                           </div>
                         </div>
                         {activity.description && (
-                          <p className="mt-2 text-sm text-gray-300 line-clamp-2 me-8">
+                          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 me-8">
                             {activity.description}
                           </p>
                         )}

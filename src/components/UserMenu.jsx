@@ -2,7 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui/popover";
 import { Separator } from "./ui/separator";
 
 function initials(email) {
@@ -11,7 +15,7 @@ function initials(email) {
   return part.slice(0, 2).toUpperCase();
 }
 
-export default function UserMenu() {
+export default function UserMenu({ className }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -28,31 +32,37 @@ export default function UserMenu() {
         <Button
           variant="outline"
           size="sm"
-          className="rounded-full border-gray-600 bg-gray-700/80 pl-1 pr-2.5 h-9 gap-2"
+          className={
+            className ||
+            "rounded-full border-border bg-background pl-1 pr-2.5 h-9 gap-2 hover:bg-muted"
+          }
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-semibold text-white">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
             {initials(user.email)}
           </span>
-          <span className="hidden sm:block max-w-[10rem] truncate text-xs text-gray-200">
+          <span className="hidden sm:block max-w-[10rem] truncate text-xs text-foreground">
             {user.email}
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="start">
+      <PopoverContent className="w-64 p-0" align="end">
         <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-0.5">مسجّل كـ</p>
-          <p className="text-sm font-medium text-white break-all">
+          <p className="text-xs text-muted-foreground mb-0.5">مسجّل كـ</p>
+          <p className="text-sm text-foreground break-all font-medium">
             {user.email}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1 font-mono truncate">
+            {user.id}
           </p>
         </div>
         <Separator />
         <div className="p-1">
           <Button
             variant="ghost"
-            className="justify-start w-full text-rose-300 hover:text-rose-200 hover:bg-gray-700"
+            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={handleSignOut}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="h-4 w-4" />
             تسجيل الخروج
           </Button>
         </div>

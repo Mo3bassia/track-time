@@ -49,7 +49,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <AnimatedContainer className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">

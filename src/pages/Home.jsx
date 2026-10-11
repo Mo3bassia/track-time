@@ -23,30 +23,30 @@ function getTaskStyle(duration) {
   const hours = parseFloat(String(duration).split("h")[0]) || 0;
   const styles = {
     4: {
-      containerClass: "border-r-4 border-purple-500 bg-purple-900/20",
+      containerClass: "border-r-4 border-purple-500 bg-violet-500/10",
       icon: "💪 👨‍💻",
-      titleClass: "text-white",
+      titleClass: "text-foreground",
       dateClass: "text-muted-foreground",
       timeClass: "text-purple-300",
     },
     2: {
-      containerClass: "border-r-4 border-orange-500 bg-orange-900/20",
+      containerClass: "border-r-4 border-orange-500 bg-orange-500/10",
       icon: "🎯 ⚒️",
-      titleClass: "text-white",
+      titleClass: "text-foreground",
       dateClass: "text-muted-foreground",
       timeClass: "text-orange-300",
     },
     1: {
-      containerClass: "border-r-4 border-green-500 bg-green-900/20",
+      containerClass: "border-r-4 border-green-500 bg-emerald-500/10",
       icon: "✅ 📝",
-      titleClass: "text-white",
+      titleClass: "text-foreground",
       dateClass: "text-muted-foreground",
       timeClass: "text-green-300",
     },
     0: {
-      containerClass: "border-r-4 border-blue-500 bg-blue-900/20",
+      containerClass: "border-r-4 border-blue-500 bg-sky-500/10",
       icon: "⚡ 🎪",
-      titleClass: "text-white",
+      titleClass: "text-foreground",
       dateClass: "text-muted-foreground",
       timeClass: "text-blue-300",
     },
@@ -334,7 +334,7 @@ export default function Home() {
                       </div>
                     </div>
                     {activity.description && (
-                      <p className="mt-3 me-12 text-white/70 text-sm line-clamp-2">
+                      <p className="mt-3 me-12 text-foreground/70 text-sm line-clamp-2">
                         {activity.description}
                       </p>
                     )}

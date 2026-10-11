@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Quote } from "lucide-react";
 import { getQuoteOfTheDay } from "../data/quotes";
 import { cn } from "../lib/utils";
 
@@ -9,54 +8,70 @@ export default function QuoteOfTheDay({ className }) {
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-border/60",
-        "bg-gradient-to-br from-primary/10 via-card to-card",
-        "px-6 py-7 sm:px-10 sm:py-9",
+        "group relative overflow-hidden rounded-2xl border border-border bg-card",
         className,
       )}
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        className="absolute inset-0 pointer-events-none opacity-80"
+        style={{
+          background:
+            "linear-gradient(135deg, color-mix(in oklab, var(--color-primary) 22%, transparent), transparent 45%, color-mix(in oklab, var(--color-primary) 12%, transparent))",
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute w-56 h-56 rounded-full pointer-events-none -top-24 -start-16 blur-3xl opacity-40"
+        style={{ background: "var(--color-primary)" }}
+        aria-hidden
+      />
+      <div
+        className="absolute w-64 h-64 rounded-full pointer-events-none -bottom-28 -end-10 bg-sky-500/20 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.06]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 20%, var(--color-primary) 0, transparent 45%), radial-gradient(circle at 80% 80%, var(--color-primary) 0, transparent 40%)",
+            "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
         }}
         aria-hidden
       />
 
-      <div className="relative">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/30 bg-primary/15 text-primary shadow-sm">
-            <Quote className="h-4 w-4" strokeWidth={2.25} />
-          </span>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-primary/90">
+      <div className="relative px-6 py-6 sm:px-10 ">
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex w-full h-full rounded-full animate-ping bg-primary/50 opacity-70" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+            </span>
+            <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-primary">
               Quote of the day
             </span>
-            <span className="h-px w-12 bg-primary/40" />
           </div>
+          <span
+            className="font-serif text-5xl leading-none transition-colors select-none sm:text-6xl text-foreground/10 group-hover:text-foreground/15"
+            aria-hidden
+          >
+            ”
+          </span>
         </div>
 
-        <blockquote className="max-w-2xl" dir="ltr" lang="en">
+        <blockquote dir="ltr" lang="en" className="max-w-2xl mx-auto">
           <p
-            className="text-[1.15rem] sm:text-xl md:text-[1.35rem] leading-[1.7] text-foreground/95 font-medium"
+            className="text-lg sm:text-xl md:text-[1.4rem] leading-[1.75] text-foreground font-medium tracking-wide text-center"
             style={{
               fontFamily:
-                "Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif",
+                "Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', serif",
             }}
           >
-            <span className="text-primary/50 text-3xl leading-none me-1 align-[-0.2em]">
-              “
-            </span>
             {quote.text}
-            <span className="text-primary/50 text-3xl leading-none ms-0.5 align-[-0.2em]">
-              ”
-            </span>
           </p>
-          <footer className="mt-5 flex items-center gap-3">
-            <span className="h-px w-8 sm:w-12 bg-border" />
-            <cite className="not-italic text-sm text-muted-foreground tracking-wide">
-              — {quote.author}
+          <footer className="flex items-center justify-center gap-3 mt-7">
+            <span className="w-10 h-px bg-gradient-to-r from-primary/80 to-transparent" />
+            <cite className="text-sm not-italic tracking-wider text-muted-foreground">
+              {quote.author}
             </cite>
           </footer>
         </blockquote>

@@ -6,14 +6,21 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-indigo-600 text-white",
-        secondary: "border-transparent bg-gray-700 text-gray-200",
-        destructive: "border-transparent bg-rose-600 text-white",
-        outline: "border-gray-600 text-gray-300",
-        success: "border-transparent bg-emerald-900/40 text-emerald-300",
-        warning: "border-transparent bg-orange-900/40 text-orange-300",
-        purple: "border-transparent bg-purple-900/40 text-purple-300",
-        blue: "border-transparent bg-blue-900/40 text-blue-300",
+        default:
+          "border-transparent bg-primary text-primary-foreground",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground",
+        outline: "border-border text-foreground",
+        destructive:
+          "border-transparent bg-destructive text-white",
+        success:
+          "border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+        warning:
+          "border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-300",
+        purple:
+          "border-transparent bg-violet-500/15 text-violet-700 dark:text-violet-300",
+        blue:
+          "border-transparent bg-sky-500/15 text-sky-700 dark:text-sky-300",
       },
     },
     defaultVariants: {
@@ -23,7 +30,9 @@ const badgeVariants = cva(
 );
 
 function Badge({ className, variant, ...props }) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  );
 }
 
 export { Badge, badgeVariants };

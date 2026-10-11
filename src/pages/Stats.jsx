@@ -32,9 +32,9 @@ const COLORS = [
 function CustomTooltip({ active, payload, label, valuePrefix }) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-gray-800 p-3 rounded shadow-lg border border-gray-700">
-        <p className="text-gray-300 mb-1">{label}</p>
-        <p className="text-white font-medium">
+      <div className="bg-card p-3 rounded shadow-lg border border-border">
+        <p className="text-muted-foreground mb-1">{label}</p>
+        <p className="text-foreground font-medium">
           {payload[0].dataKey === "minutes"
             ? formatMinutes(payload[0].value)
             : `${valuePrefix || ""}${payload[0].value}`}
@@ -218,16 +218,16 @@ export default function Stats() {
   if (activities.length === 0) {
     return (
       <AnimatedContainer>
-        <div className="bg-gray-800 rounded-lg p-8 shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
+        <div className="bg-card rounded-lg p-8 shadow-lg text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             لا توجد إحصائيات بعد
           </h2>
-          <p className="text-gray-300 mb-6">
+          <p className="text-muted-foreground mb-6">
             أضف بعض الأنشطة لتبدأ في رؤية الإحصائيات هنا
           </p>
           <Link
             to="/activity"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg"
+            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-foreground font-medium py-3 px-6 rounded-lg"
           >
             إضافة نشاط جديد
           </Link>
@@ -239,16 +239,16 @@ export default function Stats() {
   return (
     <div className="space-y-8">
       <AnimatedContainer>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-white mb-4">اختر التاريخ</h2>
+        <div className="bg-card rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-foreground mb-4">اختر التاريخ</h2>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setSelectedDate("all")}
               className={`px-3 py-2 rounded-md text-sm font-medium ${
                 selectedDate === "all"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  ? "bg-indigo-600 text-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
               }`}
             >
               كل الفترات
@@ -260,12 +260,12 @@ export default function Stats() {
                 onClick={() => setSelectedDate(d.key)}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   selectedDate === d.key
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "bg-indigo-600 text-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {d.date}
-                <span className="bg-gray-600 text-white text-xs ml-2 px-2 py-0.5 rounded-full">
+                <span className="bg-muted text-foreground text-xs ml-2 px-2 py-0.5 rounded-full">
                   {d.count}
                 </span>
               </button>
@@ -276,40 +276,40 @@ export default function Stats() {
 
       <AnimatedContainer delay={0.1}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gray-800 rounded-lg p-5 shadow-lg">
+          <div className="bg-card rounded-lg p-5 shadow-lg">
             <h3 className="text-indigo-300 text-sm font-medium mb-1">
               إجمالي الوقت
             </h3>
-            <p className="text-white text-3xl font-bold">
+            <p className="text-foreground text-3xl font-bold">
               {formatMinutes(summary.totalMinutes)}
             </p>
           </div>
-          <div className="bg-gray-800 rounded-lg p-5 shadow-lg">
+          <div className="bg-card rounded-lg p-5 shadow-lg">
             <h3 className="text-indigo-300 text-sm font-medium mb-1">
               عدد المهام
             </h3>
-            <p className="text-white text-3xl font-bold">{summary.totalTasks}</p>
+            <p className="text-foreground text-3xl font-bold">{summary.totalTasks}</p>
           </div>
-          <div className="bg-gray-800 rounded-lg p-5 shadow-lg">
+          <div className="bg-card rounded-lg p-5 shadow-lg">
             <h3 className="text-indigo-300 text-sm font-medium mb-1">
               متوسط يومي
             </h3>
-            <p className="text-white text-3xl font-bold">
+            <p className="text-foreground text-3xl font-bold">
               {formatMinutes(summary.avgDailyMinutes)}
             </p>
           </div>
-          <div className="bg-gray-800 rounded-lg p-5 shadow-lg">
+          <div className="bg-card rounded-lg p-5 shadow-lg">
             <h3 className="text-indigo-300 text-sm font-medium mb-1">
               أيام التتبع
             </h3>
-            <p className="text-white text-3xl font-bold">{summary.daysTracked}</p>
+            <p className="text-foreground text-3xl font-bold">{summary.daysTracked}</p>
           </div>
         </div>
       </AnimatedContainer>
 
       <AnimatedContainer delay={0.2}>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-white mb-6">النشاط الأسبوعي</h2>
+        <div className="bg-card rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-foreground mb-6">النشاط الأسبوعي</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={weeklyActivity}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -326,8 +326,8 @@ export default function Stats() {
 
       <AnimatedContainer delay={0.3}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-white mb-6">توزيع الوقت</h2>
+          <div className="bg-card rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-foreground mb-6">توزيع الوقت</h2>
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie
@@ -355,8 +355,8 @@ export default function Stats() {
                     className="inline-block w-3 h-3 rounded-full mr-3"
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
-                  <span className="text-gray-300 flex-1">{item.name}</span>
-                  <span className="text-white font-medium">
+                  <span className="text-muted-foreground flex-1">{item.name}</span>
+                  <span className="text-foreground font-medium">
                     {formatMinutes(item.minutes)}
                   </span>
                 </div>
@@ -364,8 +364,8 @@ export default function Stats() {
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-white mb-6">
+          <div className="bg-card rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-foreground mb-6">
               أكثر ساعات النشاط
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -393,7 +393,7 @@ export default function Stats() {
                 />
               </LineChart>
             </ResponsiveContainer>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               الساعات التقديرية مش بتدخل في الرسم ده (مفيش ساعة بدء)
             </p>
           </div>
@@ -401,21 +401,21 @@ export default function Stats() {
       </AnimatedContainer>
 
       <AnimatedContainer delay={0.4}>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-white mb-6">
+        <div className="bg-card rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-foreground mb-6">
             أكثر الأنشطة استهلاكاً للوقت
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr>
-                  <th className="text-right text-gray-400 font-medium py-2">
+                  <th className="text-right text-muted-foreground font-medium py-2">
                     النشاط
                   </th>
-                  <th className="text-right text-gray-400 font-medium py-2">
+                  <th className="text-right text-muted-foreground font-medium py-2">
                     إجمالي الوقت
                   </th>
-                  <th className="text-right text-gray-400 font-medium py-2">
+                  <th className="text-right text-muted-foreground font-medium py-2">
                     النسبة
                   </th>
                 </tr>
@@ -423,13 +423,13 @@ export default function Stats() {
               <tbody>
                 {timeDistribution.map((item, index) => (
                   <tr key={item.name}>
-                    <td className="py-3 text-white">{item.name}</td>
-                    <td className="py-3 text-white">
+                    <td className="py-3 text-foreground">{item.name}</td>
+                    <td className="py-3 text-foreground">
                       {formatMinutes(item.minutes)}
                     </td>
                     <td className="py-3">
                       <div className="flex items-center">
-                        <span className="text-white mr-2">
+                        <span className="text-foreground mr-2">
                           {summary.totalMinutes
                             ? (
                                 (item.minutes / summary.totalMinutes) *
@@ -438,7 +438,7 @@ export default function Stats() {
                             : 0}
                           %
                         </span>
-                        <div className="w-32 bg-gray-700 rounded-full h-2">
+                        <div className="w-32 bg-muted rounded-full h-2">
                           <div
                             className="h-2 rounded-full"
                             style={{
@@ -462,8 +462,8 @@ export default function Stats() {
       </AnimatedContainer>
 
       <AnimatedContainer delay={0.5}>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-white mb-6">
+        <div className="bg-card rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-foreground mb-6">
             تحليل تطور النشاط
           </h2>
           <div className="mb-6 flex flex-wrap gap-2">
@@ -474,8 +474,8 @@ export default function Stats() {
                 onClick={() => setSelectedActivity(title)}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   selectedActivity === title
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    ? "bg-indigo-600 text-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {title}
@@ -487,27 +487,27 @@ export default function Stats() {
             activityProgress.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-gray-400 text-sm mb-1">إجمالي الوقت</h4>
-                    <p className="text-white text-xl font-bold">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="text-muted-foreground text-sm mb-1">إجمالي الوقت</h4>
+                    <p className="text-foreground text-xl font-bold">
                       {formatMinutes(activityStats.totalMinutes)}
                     </p>
                   </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-gray-400 text-sm mb-1">التكرار</h4>
-                    <p className="text-white text-xl font-bold">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="text-muted-foreground text-sm mb-1">التكرار</h4>
+                    <p className="text-foreground text-xl font-bold">
                       {activityStats.totalOccurrences} مرة
                     </p>
                   </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-gray-400 text-sm mb-1">متوسط يومي</h4>
-                    <p className="text-white text-xl font-bold">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="text-muted-foreground text-sm mb-1">متوسط يومي</h4>
+                    <p className="text-foreground text-xl font-bold">
                       {formatMinutes(activityStats.avgMinutesPerDay)}
                     </p>
                   </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-gray-400 text-sm mb-1">متوسط المرة</h4>
-                    <p className="text-white text-xl font-bold">
+                  <div className="bg-muted rounded-lg p-4">
+                    <h4 className="text-muted-foreground text-sm mb-1">متوسط المرة</h4>
+                    <p className="text-foreground text-xl font-bold">
                       {formatMinutes(activityStats.avgMinutesPerOccurrence)}
                     </p>
                   </div>
@@ -530,12 +530,12 @@ export default function Stats() {
                 </ResponsiveContainer>
               </>
             ) : (
-              <p className="text-gray-400 text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                 لا توجد بيانات كافية لهذا النشاط
               </p>
             )
           ) : (
-            <p className="text-gray-400 text-center py-8">
+            <p className="text-muted-foreground text-center py-8">
               اختر نشاطًا من القائمة لعرض تحليله
             </p>
           )}

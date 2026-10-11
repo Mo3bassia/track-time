@@ -24,7 +24,7 @@ export function TimePicker({
       required={required}
       onChange={(e) => onChange?.(e.target.value)}
       className={cn(
-        "bg-gray-700 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none",
+        "bg-muted appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none",
         className,
       )}
     />

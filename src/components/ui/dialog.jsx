@@ -27,14 +27,14 @@ const DialogContent = React.forwardRef(
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-gray-700 bg-gray-800 p-6 shadow-lg duration-200 sm:rounded-lg",
+          "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-border bg-card p-6 shadow-lg duration-200 sm:rounded-lg",
           className,
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute left-4 top-4 rounded-sm opacity-70 ring-offset-gray-900 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <X className="h-4 w-4 text-gray-300" />
+        <DialogPrimitive.Close className="absolute left-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring">
+          <X className="h-4 w-4 text-muted-foreground" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -70,7 +70,7 @@ function DialogFooter({ className, ...props }) {
 const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold text-white", className)}
+    className={cn("text-lg font-semibold text-foreground", className)}
     {...props}
   />
 ));
@@ -79,7 +79,7 @@ DialogTitle.displayName = DialogPrimitive.Title.displayName;
 const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-gray-400", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ));

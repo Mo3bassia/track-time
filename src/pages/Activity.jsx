@@ -130,7 +130,7 @@ export default function Activity() {
   return (
     <AnimatedContainer>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">إضافة نشاط جديد</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">إضافة نشاط جديد</h1>
 
         <Card>
           <CardHeader>
@@ -161,16 +161,16 @@ export default function Activity() {
                     required
                   />
                   {showSuggestions && (
-                    <div className="absolute z-20 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1 bg-card border border-input rounded-md shadow-lg max-h-60 overflow-y-auto">
                       <ul className="py-1">
                         {filteredTitles.map((title, index) => (
                           <li key={title}>
                             <button
                               type="button"
-                              className={`w-full text-start px-3 py-2 text-sm text-white ${
+                              className={`w-full text-start px-3 py-2 text-sm text-foreground ${
                                 selectedSuggestionIndex === index
                                   ? "bg-indigo-900/40"
-                                  : "hover:bg-gray-700"
+                                  : "hover:bg-muted"
                               }`}
                               onMouseDown={(e) => {
                                 e.preventDefault();
@@ -187,13 +187,13 @@ export default function Activity() {
                 </div>
                 {previousTitles.length > 0 && (
                   <div className="pt-1">
-                    <p className="text-xs text-gray-400 mb-2">أنشطة سابقة:</p>
+                    <p className="text-xs text-muted-foreground mb-2">أنشطة سابقة:</p>
                     <div className="flex flex-wrap gap-2">
                       {previousTitles.slice(0, 8).map((title) => (
                         <Badge
                           key={title}
                           variant="secondary"
-                          className="cursor-pointer hover:bg-gray-600"
+                          className="cursor-pointer hover:bg-muted"
                           onClick={() => pickTitle(title)}
                         >
                           {title}
