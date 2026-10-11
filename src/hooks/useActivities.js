@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -8,16 +9,60 @@ import { supabase } from "../lib/supabase";
 import { mapRowToUi } from "../lib/activityHelpers";
 import { useAuth } from "../context/AuthContext";
 
-/**
- * @param {object} [filters]
- * @param {string} [filters.search]
- * @param {string} [filters.dateFrom]
- * @param {string} [filters.dateTo]
- * @param {string} [filters.timeMode]
- * @param {number|null} [filters.minMinutes]
- * @param {number|null} [filters.maxMinutes]
- * @param {string} [filters.title]
- */
+export const ACTIVITIES_PAGE_SIZE = 40;
+
+function applyActivityFilters(query, filters, userId) {
+  const {
+    search = "",
+    dateFrom = "",
+    dateTo = "",
+    timeMode = "all",
+    minMinutes = null,
+    maxMinutes = null,
+    title = "",
+  } = filters;
+
+  query = query.eq("user_id", userId);
+
+  const q = search.trim();
+  if (q) {
+    query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+  }
+
+  if (title.trim()) {
+    query = query.eq("title", title.trim());
+  }
+
+  if (dateFrom) {
+    query = query.gte("activity_date", dateFrom);
+  }
+  if (dateTo) {
+    query = query.lte("activity_date", dateTo);
+  }
+
+  if (timeMode === "range" || timeMode === "estimated") {
+    query = query.eq("time_mode", timeMode);
+  }
+
+  if (
+    minMinutes != null &&
+    minMinutes !== "" &&
+    !Number.isNaN(Number(minMinutes))
+  ) {
+    query = query.gte("duration_minutes", Number(minMinutes));
+  }
+  if (
+    maxMinutes != null &&
+    maxMinutes !== "" &&
+    !Number.isNaN(Number(maxMinutes))
+  ) {
+    query = query.lte("duration_minutes", Number(maxMinutes));
+  }
+
+  return query;
+}
+
+/** Full list (Home / Stats) — use carefully */
 export function useActivities(filters = {}) {
   const { user } = useAuth();
   const {
@@ -47,49 +92,73 @@ export function useActivities(filters = {}) {
       let query = supabase
         .from("time_activities")
         .select("*")
-        .eq("user_id", user.id)
         .order("activity_date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      const q = search.trim();
-      if (q) {
-        query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
-      }
-
-      if (title.trim()) {
-        query = query.eq("title", title.trim());
-      }
-
-      if (dateFrom) {
-        query = query.gte("activity_date", dateFrom);
-      }
-      if (dateTo) {
-        query = query.lte("activity_date", dateTo);
-      }
-
-      if (timeMode === "range" || timeMode === "estimated") {
-        query = query.eq("time_mode", timeMode);
-      }
-
-      if (
-        minMinutes != null &&
-        minMinutes !== "" &&
-        !Number.isNaN(Number(minMinutes))
-      ) {
-        query = query.gte("duration_minutes", Number(minMinutes));
-      }
-      if (
-        maxMinutes != null &&
-        maxMinutes !== "" &&
-        !Number.isNaN(Number(maxMinutes))
-      ) {
-        query = query.lte("duration_minutes", Number(maxMinutes));
-      }
+      query = applyActivityFilters(query, filters, user.id);
 
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map(mapRowToUi);
     },
+  });
+}
+
+export function useInfiniteActivities(filters = {}) {
+  const { user } = useAuth();
+  const {
+    search = "",
+    dateFrom = "",
+    dateTo = "",
+    timeMode = "all",
+    minMinutes = null,
+    maxMinutes = null,
+    title = "",
+  } = filters;
+
+  return useInfiniteQuery({
+    queryKey: [
+      "time-activities-infinite",
+      user?.id,
+      search,
+      dateFrom,
+      dateTo,
+      timeMode,
+      minMinutes,
+      maxMinutes,
+      title,
+    ],
+    enabled: Boolean(user?.id),
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const from = pageParam * ACTIVITIES_PAGE_SIZE;
+      const to = from + ACTIVITIES_PAGE_SIZE - 1;
+
+      let query = supabase
+        .from("time_activities")
+        .select("*", { count: "exact" })
+        .order("activity_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      query = applyActivityFilters(query, filters, user.id);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      const items = (data ?? []).map(mapRowToUi);
+      const total = count ?? null;
+      const hasMore =
+        items.length === ACTIVITIES_PAGE_SIZE &&
+        (total == null || from + items.length < total);
+
+      return {
+        items,
+        nextPage: hasMore ? pageParam + 1 : undefined,
+        total,
+      };
+    },
+    getNextPageParam: (last) => last.nextPage,
   });
 }
 
@@ -139,6 +208,7 @@ export function useCreateActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activities-infinite"] });
       queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
@@ -171,6 +241,7 @@ export function useUpdateActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activities-infinite"] });
       queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
@@ -191,6 +262,29 @@ export function useDeleteActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activities-infinite"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
+    },
+  });
+}
+
+export function useDeleteActivities() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (ids) => {
+      if (!ids?.length) return;
+      const { error } = await supabase
+        .from("time_activities")
+        .delete()
+        .in("id", ids)
+        .eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activities-infinite"] });
       queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
