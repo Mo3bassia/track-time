@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <AuthProvider>
           <App />
           <Toaster
-            position="top-center"
+            position="bottom-right"
             dir="rtl"
             richColors
             closeButton
