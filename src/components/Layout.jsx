@@ -1,22 +1,16 @@
 import { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import OfflineIndicator from "./OfflineIndicator";
 import InstallPWA from "./InstallPWA";
 import UserMenu from "./UserMenu";
 
-let UpdatePrompt;
-try {
-  UpdatePrompt = require("./UpdatePrompt").default;
-} catch {
-  UpdatePrompt = () => null;
-}
-
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
-    { to: "/", icon: "🏠", label: "الرئيسية" },
+    { to: "/", icon: "🏠", label: "الرئيسية", end: true },
     { to: "/stats", icon: "📊", label: "الإحصائيات" },
     { to: "/activity", icon: "➕", label: "إضافة نشاط" },
     { to: "/activities", icon: "📝", label: "الأنشطة" },
@@ -36,7 +30,7 @@ export default function Layout() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.to === "/"}
+                  end={item.end}
                   className={({ isActive }) =>
                     `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
@@ -57,8 +51,9 @@ export default function Layout() {
               </div>
               <button
                 type="button"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 text-gray-300 hover:bg-gray-700 rounded-md cursor-pointer"
+                onClick={() => setIsMenuOpen((v) => !v)}
+                className="md:hidden p-2 text-gray-300 hover:bg-gray-700 rounded-md"
+                aria-label="القائمة"
               >
                 <svg
                   className="w-6 h-6"
@@ -83,21 +78,21 @@ export default function Layout() {
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden"
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="md:hidden border-t border-gray-700"
             >
-              <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-800 shadow-lg border-t border-gray-700">
+              <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-800">
                 {menuItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
-                    end={item.to === "/"}
+                    end={item.end}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                      `block px-3 py-2 rounded-md text-base font-medium ${
                         isActive
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-700"
@@ -116,11 +111,12 @@ export default function Layout() {
           )}
         </AnimatePresence>
       </nav>
+
       <OfflineIndicator />
-      {UpdatePrompt && <UpdatePrompt />}
       <InstallPWA />
+
       <main className="max-w-7xl mx-auto px-4 pt-20 pb-8">
-        <Outlet />
+        <Outlet key={location.pathname} />
       </main>
     </div>
   );

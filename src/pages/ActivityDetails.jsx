@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AnimatedContainer from "../components/AnimatedContainer";
-import Toast from "../components/Toast";
+import { toast } from "sonner";
 import {
   useActivities,
   useActivity,
@@ -69,14 +69,9 @@ export default function ActivityDetails() {
     estMinutes: "0",
     description: "",
   });
-  const [toast, setToast] = useState({
-    visible: false,
-    message: "",
-    type: "success",
-  });
-
-  const showToast = (message, type = "success") => {
-    setToast({ visible: true, message, type });
+  const showMsg = (message, type = "success") => {
+    if (type === "error") toast.error(message);
+    else toast.success(message);
   };
 
   useEffect(() => {
@@ -129,7 +124,7 @@ export default function ActivityDetails() {
         formData.endTime,
       );
       if (durationMinutes <= 0) {
-        showToast("وقت الانتهاء لازم يكون بعد وقت البدء", "error");
+        showMsg("وقت الانتهاء لازم يكون بعد وقت البدء", "error");
         return;
       }
       startTime = formData.startTime;
@@ -140,7 +135,7 @@ export default function ActivityDetails() {
         formData.estMinutes,
       );
       if (durationMinutes <= 0) {
-        showToast("حط مدة تقديرية أكبر من صفر", "error");
+        showMsg("حط مدة تقديرية أكبر من صفر", "error");
         return;
       }
     }
@@ -157,19 +152,19 @@ export default function ActivityDetails() {
         timeMode,
       });
       setEditMode(false);
-      showToast("تم تحديث النشاط بنجاح");
+      showMsg("تم تحديث النشاط بنجاح");
     } catch (err) {
-      showToast(err?.message || "فشل التحديث", "error");
+      showMsg(err?.message || "فشل التحديث", "error");
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(id);
-      showToast("تم حذف النشاط بنجاح");
+      showMsg("تم حذف النشاط بنجاح");
       setTimeout(() => navigate("/activities", { replace: true }), 600);
     } catch (err) {
-      showToast(err?.message || "فشل الحذف", "error");
+      showMsg(err?.message || "فشل الحذف", "error");
     }
   };
 
@@ -198,12 +193,6 @@ export default function ActivityDetails() {
 
   return (
     <>
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
 
       <div className="mb-4">
         <Link

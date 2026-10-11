@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
@@ -18,20 +18,22 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+
         <Route
-          path="/"
           element={
             <RequireAuth>
               <Layout />
             </RequireAuth>
           }
         >
-          <Route index element={<Home />} />
-          <Route path="stats" element={<Stats />} />
-          <Route path="activity" element={<Activity />} />
-          <Route path="activities" element={<Activities />} />
-          <Route path="activities/:id" element={<ActivityDetails />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/stats" element={<Stats />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/activities" element={<Activities />} />
+          <Route path="/activities/:id" element={<ActivityDetails />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

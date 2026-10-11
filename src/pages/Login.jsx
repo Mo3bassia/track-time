@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AnimatedContainer from "../components/AnimatedContainer";
-import Toast from "../components/Toast";
+import { toast } from "sonner";
 
 export default function Login() {
   const { signIn, signUp, isAuthenticated, loading } = useAuth();
@@ -12,20 +12,15 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState({
-    visible: false,
-    message: "",
-    type: "success",
-  });
-
   useEffect(() => {
     if (!loading && isAuthenticated) {
       navigate(location.state?.from || "/", { replace: true });
     }
   }, [loading, isAuthenticated, navigate, location.state]);
 
-  const showToast = (message, type = "success") => {
-    setToast({ visible: true, message, type });
+  const showMsg = (message, type = "success") => {
+    if (type === "error") toast.error(message);
+    else toast.success(message);
   };
 
   const onSubmit = async (e) => {
@@ -34,14 +29,14 @@ export default function Login() {
     try {
       if (mode === "login") {
         await signIn(email, password);
-        showToast("تم تسجيل الدخول");
+        showMsg("تم تسجيل الدخول");
       } else {
         await signUp(email, password);
-        showToast("تم إنشاء الحساب");
+        showMsg("تم إنشاء الحساب");
       }
       navigate(location.state?.from || "/", { replace: true });
     } catch (err) {
-      showToast(err?.message || "حصل خطأ", "error");
+      showMsg(err?.message || "حصل خطأ", "error");
     } finally {
       setBusy(false);
     }
@@ -49,12 +44,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
       <AnimatedContainer className="w-full max-w-md">
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
           <h1 className="text-2xl font-bold text-white text-center mb-2">

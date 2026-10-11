@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AnimatedContainer from "../components/AnimatedContainer";
-import Toast from "../components/Toast";
 import {
   useCreateActivity,
   usePreviousTitles,
@@ -29,12 +29,6 @@ export default function Activity() {
   const [filteredTitles, setFilteredTitles] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  const [toast, setToast] = useState({
-    visible: false,
-    message: "",
-    type: "success",
-  });
-
   useEffect(() => {
     if (formData.title.trim().length > 0) {
       const filtered = previousTitles.filter((title) =>
@@ -49,8 +43,9 @@ export default function Activity() {
     setSelectedSuggestionIndex(-1);
   }, [formData.title, previousTitles]);
 
-  const showToast = (message, type = "success") => {
-    setToast({ visible: true, message, type });
+  const showMsg = (message, type = "success") => {
+    if (type === "error") toast.error(message);
+    else toast.success(message);
   };
 
   const handleSuggestionClick = (title) => {
@@ -93,7 +88,7 @@ export default function Activity() {
         formData.endTime,
       );
       if (durationMinutes <= 0) {
-        showToast("وقت الانتهاء لازم يكون بعد وقت البدء", "error");
+        showMsg("وقت الانتهاء لازم يكون بعد وقت البدء", "error");
         return;
       }
       startTime = formData.startTime;
@@ -104,7 +99,7 @@ export default function Activity() {
         formData.estMinutes,
       );
       if (durationMinutes <= 0) {
-        showToast("حط مدة تقديرية أكبر من صفر", "error");
+        showMsg("حط مدة تقديرية أكبر من صفر", "error");
         return;
       }
     }
@@ -119,24 +114,17 @@ export default function Activity() {
         durationMinutes,
         timeMode,
       });
-      showToast(`تم إضافة نشاط "${formData.title}"`);
+      showMsg(`تم إضافة نشاط "${formData.title}"`);
       setTimeout(() => {
         navigate(`/activities/${created.id}`);
       }, 400);
     } catch (err) {
-      showToast(err?.message || "فشل الحفظ", "error");
+      showMsg(err?.message || "فشل الحفظ", "error");
     }
   };
 
   return (
     <AnimatedContainer>
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
-
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-8">إضافة نشاط جديد</h1>
 
