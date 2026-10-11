@@ -1,8 +1,18 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import AnimatedContainer from "../components/AnimatedContainer";
+import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import { useActivities } from "../hooks/useActivities";
 import { formatMinutes } from "../lib/activityHelpers";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
 
 function todayKey() {
   const t = new Date();
@@ -16,28 +26,28 @@ function getTaskStyle(duration) {
       containerClass: "border-r-4 border-purple-500 bg-purple-900/20",
       icon: "💪 👨‍💻",
       titleClass: "text-white",
-      dateClass: "text-gray-400",
+      dateClass: "text-muted-foreground",
       timeClass: "text-purple-300",
     },
     2: {
       containerClass: "border-r-4 border-orange-500 bg-orange-900/20",
       icon: "🎯 ⚒️",
       titleClass: "text-white",
-      dateClass: "text-gray-400",
+      dateClass: "text-muted-foreground",
       timeClass: "text-orange-300",
     },
     1: {
       containerClass: "border-r-4 border-green-500 bg-green-900/20",
       icon: "✅ 📝",
       titleClass: "text-white",
-      dateClass: "text-gray-400",
+      dateClass: "text-muted-foreground",
       timeClass: "text-green-300",
     },
     0: {
       containerClass: "border-r-4 border-blue-500 bg-blue-900/20",
       icon: "⚡ 🎪",
       titleClass: "text-white",
-      dateClass: "text-gray-400",
+      dateClass: "text-muted-foreground",
       timeClass: "text-blue-300",
     },
   };
@@ -88,13 +98,15 @@ function calcStreak(activities) {
 export default function Home() {
   const { data: allActivities = [], isLoading: loading } = useActivities();
   const key = todayKey();
+  const isoToday = new Date().toISOString().slice(0, 10);
 
   const todayActivities = useMemo(
     () =>
       allActivities.filter(
-        (a) => a.dateMetadata?.dateKey === key || a.activityDate === new Date().toISOString().slice(0, 10),
+        (a) =>
+          a.dateMetadata?.dateKey === key || a.activityDate === isoToday,
       ),
-    [allActivities, key],
+    [allActivities, key, isoToday],
   );
 
   const stats = useMemo(() => {
@@ -110,7 +122,7 @@ export default function Home() {
 
     const mostTimeActivity =
       Object.entries(timeByActivity).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-      "-";
+      "—";
 
     const distribution = Object.entries(timeByActivity)
       .map(([name, minutes]) => ({ name, minutes }))
@@ -139,8 +151,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500" />
+      <div className="space-y-6 mt-10">
+        <Skeleton className="h-24 w-full max-w-md mx-auto" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
@@ -148,127 +162,138 @@ export default function Home() {
   return (
     <div className="space-y-8 font-arabic mt-10">
       <AnimatedContainer>
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">متتبع الوقت</h1>
-          <p className="text-gray-300 mb-8">تتبع وقتك بسهولة وفعالية</p>
-          <Link
-            to="/activity"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-          >
-            + إضافة نشاط جديد
-          </Link>
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-foreground">متتبع الوقت</h1>
+          <p className="text-muted-foreground">تتبع وقتك بسهولة وفعالية</p>
+          <Button asChild size="lg">
+            <Link to="/activity">+ إضافة نشاط جديد</Link>
+          </Button>
         </div>
       </AnimatedContainer>
 
-      <AnimatedContainer delay={0.1}>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            نظرة عامة اليوم
-            <span className="text-sm font-medium text-indigo-400 mr-2">
-              {new Date().toLocaleDateString("ar-EG", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-700 rounded-lg p-4">
-              <h3 className="text-gray-300 text-sm font-medium">
-                الوقت الإجمالي
-              </h3>
-              <p className="text-white text-2xl font-bold mt-2">
-                {formatMinutes(stats.totalMinutes)}
-              </p>
+      <AnimatedContainer delay={0.08}>
+        <QuoteOfTheDay />
+      </AnimatedContainer>
+
+      <AnimatedContainer delay={0.12}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl flex flex-wrap items-baseline gap-2">
+              نظرة عامة اليوم
+              <span className="text-sm font-medium text-primary">
+                {new Date().toLocaleDateString("ar-EG", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-lg bg-muted/60 p-4">
+                <h3 className="text-muted-foreground text-sm font-medium">
+                  الوقت الإجمالي
+                </h3>
+                <p className="text-foreground text-2xl font-bold mt-2">
+                  {formatMinutes(stats.totalMinutes)}
+                </p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-4">
+                <h3 className="text-muted-foreground text-sm font-medium">
+                  أكثر وقت في
+                </h3>
+                <p className="text-foreground text-2xl font-bold mt-2 truncate">
+                  {stats.mostTimeActivity}
+                </p>
+              </div>
+              <div className="rounded-lg bg-muted/60 p-4">
+                <h3 className="text-muted-foreground text-sm font-medium">
+                  عدد الأنشطة
+                </h3>
+                <p className="text-foreground text-2xl font-bold mt-2">
+                  {stats.activityCount}
+                </p>
+              </div>
             </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <h3 className="text-gray-300 text-sm font-medium">أكثر وقت في</h3>
-              <p className="text-white text-2xl font-bold mt-2">
-                {stats.mostTimeActivity}
-              </p>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <h3 className="text-gray-300 text-sm font-medium">عدد الأنشطة</h3>
-              <p className="text-white text-2xl font-bold mt-2">
-                {stats.activityCount}
-              </p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </AnimatedContainer>
 
       <AnimatedContainer delay={0.15}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white">مقياس الإنتاجية</h2>
-              <div className="bg-indigo-500/30 text-indigo-300 py-1 px-3 rounded-full text-sm">
-                {stats.productiveScore}/100
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">
+                  مقياس الإنتاجية
+                </h2>
+                <Badge variant="secondary">{stats.productiveScore}/100</Badge>
               </div>
-            </div>
-            <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${stats.productiveScore}%` }}
-              />
-            </div>
-            <p className="text-gray-300 text-sm mt-4">
-              {stats.productiveScore < 30 && "ما زال أمامك المزيد لإنجازه اليوم!"}
-              {stats.productiveScore >= 30 &&
-                stats.productiveScore < 70 &&
-                "أنت على الطريق الصحيح. واصل التقدم!"}
-              {stats.productiveScore >= 70 &&
-                "أداء ممتاز! لقد حققت الكثير اليوم."}
-            </p>
-          </div>
+              <div className="relative h-4 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 start-0 h-full bg-gradient-to-l from-primary to-purple-500 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.productiveScore}%` }}
+                />
+              </div>
+              <p className="text-muted-foreground text-sm mt-4">
+                {stats.productiveScore < 30 &&
+                  "ما زال أمامك المزيد لإنجازه اليوم!"}
+                {stats.productiveScore >= 30 &&
+                  stats.productiveScore < 70 &&
+                  "أنت على الطريق الصحيح. واصل التقدم!"}
+                {stats.productiveScore >= 70 &&
+                  "أداء ممتاز! لقد حققت الكثير اليوم."}
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-white">الهدف اليومي</h2>
-                <p className="text-gray-400 text-sm mt-1">
-                  {formatMinutes(stats.goalProgress.completed)} من{" "}
-                  {formatMinutes(stats.goalProgress.total)}
-                </p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-6 gap-2">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    الهدف اليومي
+                  </h2>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    {formatMinutes(stats.goalProgress.completed)} من{" "}
+                    {formatMinutes(stats.goalProgress.total)}
+                  </p>
+                </div>
+                <Badge variant="warning" className="shrink-0">
+                  🔥 {stats.streak} يوم
+                </Badge>
               </div>
-              <div className="flex items-center bg-amber-600/20 text-amber-400 py-1 px-3 rounded-full">
-                <span className="text-xl mr-1">🔥</span>
-                <span>{stats.streak} يوم متتالي</span>
+              <div className="relative h-4 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 start-0 h-full bg-gradient-to-l from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.goalProgress.percentage}%` }}
+                />
               </div>
-            </div>
-            <div className="relative h-4 bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
-                style={{ width: `${stats.goalProgress.percentage}%` }}
-              />
-            </div>
-            <p className="text-gray-300 text-sm mt-4 text-center">
-              {stats.goalProgress.percentage < 100
-                ? `متبقي ${formatMinutes(
-                    stats.goalProgress.total - stats.goalProgress.completed,
-                  )} للوصول للهدف`
-                : "تهانينا! لقد حققت هدفك اليوم 🎉"}
-            </p>
-          </div>
+              <p className="text-muted-foreground text-sm mt-4 text-center">
+                {stats.goalProgress.percentage < 100
+                  ? `متبقي ${formatMinutes(
+                      stats.goalProgress.total -
+                        stats.goalProgress.completed,
+                    )} للوصول للهدف`
+                  : "تهانينا! لقد حققت هدفك اليوم 🎉"}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </AnimatedContainer>
 
       {todayActivities.length > 0 ? (
         <AnimatedContainer delay={0.2}>
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg border border-gray-700">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                أنشطة اليوم
-              </h2>
-              <Link
-                to="/activities"
-                className="text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                عرض كل الأنشطة
-              </Link>
-            </div>
-            <div className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+              <CardTitle className="text-xl sm:text-2xl">أنشطة اليوم</CardTitle>
+              <Button asChild variant="link" className="text-primary">
+                <Link to="/activities">عرض الكل</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {todayActivities.slice(0, 5).map((activity) => {
                 const style = getTaskStyle(activity.duration);
                 return (
@@ -286,7 +311,7 @@ export default function Home() {
                             </span>
                           ))}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <h3
                             className={`font-medium text-base sm:text-lg truncate ${style.titleClass}`}
                           >
@@ -297,7 +322,9 @@ export default function Home() {
                           </p>
                         </div>
                       </div>
-                      <div className={`flex items-center gap-3 ${style.timeClass}`}>
+                      <div
+                        className={`flex items-center gap-3 ${style.timeClass}`}
+                      >
                         <div className="text-sm whitespace-nowrap">
                           {activity.time}
                         </div>
@@ -307,42 +334,41 @@ export default function Home() {
                       </div>
                     </div>
                     {activity.description && (
-                      <p className="mt-3 mr-12 text-white/70 text-sm line-clamp-2">
+                      <p className="mt-3 me-12 text-white/70 text-sm line-clamp-2">
                         {activity.description}
                       </p>
                     )}
                   </Link>
                 );
               })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </AnimatedContainer>
       ) : (
         <AnimatedContainer delay={0.2}>
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <h3 className="text-xl font-bold text-white mb-2">
-              لا توجد أنشطة اليوم
-            </h3>
-            <p className="text-gray-400 mb-4">
-              قم بإضافة نشاط جديد لتبدأ تتبع وقتك
-            </p>
-            <Link
-              to="/activity"
-              className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              + إضافة نشاط
-            </Link>
-          </div>
+          <Card>
+            <CardContent className="py-10 text-center space-y-3">
+              <h3 className="text-xl font-bold text-foreground">
+                لا توجد أنشطة اليوم
+              </h3>
+              <p className="text-muted-foreground">
+                قم بإضافة نشاط جديد لتبدأ تتبع وقتك
+              </p>
+              <Button asChild>
+                <Link to="/activity">+ إضافة نشاط</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </AnimatedContainer>
       )}
 
       {stats.distribution.length > 0 && (
-        <AnimatedContainer delay={0.3}>
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-6">
-              توزيع الوقت اليوم
-            </h2>
-            <div className="space-y-4">
+        <AnimatedContainer delay={0.25}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">توزيع الوقت اليوم</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {stats.distribution.slice(0, 5).map((item, index) => {
                 const total = stats.distribution.reduce(
                   (acc, c) => acc + c.minutes,
@@ -359,48 +385,36 @@ export default function Home() {
                 ];
                 return (
                   <div key={item.name} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white">{item.name}</span>
-                      <span className="text-gray-300">
+                    <div className="flex justify-between text-sm gap-2">
+                      <span className="text-foreground truncate">
+                        {item.name}
+                      </span>
+                      <span className="text-muted-foreground shrink-0">
                         {formatMinutes(item.minutes)} ({percentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2.5">
+                    <div className="w-full bg-muted rounded-full h-2.5">
                       <div
-                        className={`h-2.5 rounded-full bg-gradient-to-r ${colors[index % colors.length]}`}
+                        className={`h-2.5 rounded-full bg-gradient-to-l ${colors[index % colors.length]}`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
                   </div>
                 );
               })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </AnimatedContainer>
       )}
 
-      <AnimatedContainer delay={0.4}>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700 relative overflow-hidden">
-          <h2 className="text-xl font-bold text-white mb-4">اقتباس اليوم</h2>
-          <p className="text-gray-200 text-lg mb-3">
-            "لا تقل أبدًا أنك خسرت الوقت. أنت لم تخسر الوقت - لقد تعلمت فقط
-            طريقة أخرى لا تعمل."
-          </p>
-          <p className="text-gray-400 text-sm">- توماس إديسون</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              to="/stats"
-              className="bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-4 rounded-lg transition-colors"
-            >
-              📊 إحصائيات
-            </Link>
-            <Link
-              to="/activities"
-              className="bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-4 rounded-lg transition-colors"
-            >
-              📝 الأنشطة
-            </Link>
-          </div>
+      <AnimatedContainer delay={0.3}>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Button asChild variant="secondary">
+            <Link to="/stats">📊 إحصائيات</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/activities">📝 الأنشطة</Link>
+          </Button>
         </div>
       </AnimatedContainer>
     </div>

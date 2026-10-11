@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   useMutation,
   useQuery,
@@ -10,11 +11,11 @@ import { useAuth } from "../context/AuthContext";
 /**
  * @param {object} [filters]
  * @param {string} [filters.search]
- * @param {string} [filters.dateFrom] YYYY-MM-DD
- * @param {string} [filters.dateTo] YYYY-MM-DD
- * @param {string} [filters.timeMode] 'all' | 'range' | 'estimated'
- * @param {number} [filters.minMinutes]
- * @param {number} [filters.maxMinutes]
+ * @param {string} [filters.dateFrom]
+ * @param {string} [filters.dateTo]
+ * @param {string} [filters.timeMode]
+ * @param {number|null} [filters.minMinutes]
+ * @param {number|null} [filters.maxMinutes]
  * @param {string} [filters.title]
  */
 export function useActivities(filters = {}) {
@@ -52,9 +53,7 @@ export function useActivities(filters = {}) {
 
       const q = search.trim();
       if (q) {
-        query = query.or(
-          `title.ilike.%${q}%,description.ilike.%${q}%`,
-        );
+        query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
       }
 
       if (title.trim()) {
@@ -72,10 +71,18 @@ export function useActivities(filters = {}) {
         query = query.eq("time_mode", timeMode);
       }
 
-      if (minMinutes != null && minMinutes !== "" && !Number.isNaN(Number(minMinutes))) {
+      if (
+        minMinutes != null &&
+        minMinutes !== "" &&
+        !Number.isNaN(Number(minMinutes))
+      ) {
         query = query.gte("duration_minutes", Number(minMinutes));
       }
-      if (maxMinutes != null && maxMinutes !== "" && !Number.isNaN(Number(maxMinutes))) {
+      if (
+        maxMinutes != null &&
+        maxMinutes !== "" &&
+        !Number.isNaN(Number(maxMinutes))
+      ) {
         query = query.lte("duration_minutes", Number(maxMinutes));
       }
 
@@ -132,6 +139,7 @@ export function useCreateActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
 }
@@ -163,6 +171,7 @@ export function useUpdateActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
 }
@@ -182,13 +191,17 @@ export function useDeleteActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["time-activity-titles"] });
     },
   });
 }
 
 export function usePreviousTitles() {
   const { data: activities = [] } = useActivities();
-  return [...new Set(activities.map((a) => a.title))].filter(Boolean);
+  return useMemo(
+    () => [...new Set(activities.map((a) => a.title).filter(Boolean))],
+    [activities],
+  );
 }
 
 export function useDistinctTitles() {

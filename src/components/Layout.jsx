@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import OfflineIndicator from "./OfflineIndicator";
 import InstallPWA from "./InstallPWA";
 import UserMenu from "./UserMenu";
+import { Button } from "./ui/button";
+import { cn } from "../lib/utils";
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,7 +21,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-900 font-arabic">
-      <nav className="bg-gray-800 shadow-lg fixed w-full top-0 z-50">
+      <nav className="bg-gray-800 shadow-lg fixed w-full top-0 z-50 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16 items-center gap-3">
             <NavLink to="/" className="text-xl font-bold text-white shrink-0">
@@ -32,11 +35,12 @@ export default function Layout() {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    cn(
+                      "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
                       isActive
                         ? "bg-gray-700 text-white"
-                        : "text-gray-300 hover:bg-gray-700"
-                    }`
+                        : "text-gray-300 hover:bg-gray-700",
+                    )
                   }
                 >
                   <span className="ml-2">{item.icon}</span>
@@ -49,28 +53,20 @@ export default function Layout() {
               <div className="hidden md:block">
                 <UserMenu />
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-gray-300"
                 onClick={() => setIsMenuOpen((v) => !v)}
-                className="md:hidden p-2 text-gray-300 hover:bg-gray-700 rounded-md"
                 aria-label="القائمة"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  {isMenuOpen ? (
-                    <path d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
+                {isMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -92,11 +88,12 @@ export default function Layout() {
                     end={item.end}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md text-base font-medium ${
+                      cn(
+                        "block px-3 py-2 rounded-md text-base font-medium",
                         isActive
                           ? "bg-gray-700 text-white"
-                          : "text-gray-300 hover:bg-gray-700"
-                      }`
+                          : "text-gray-300 hover:bg-gray-700",
+                      )
                     }
                   >
                     <span className="ml-2">{item.icon}</span>

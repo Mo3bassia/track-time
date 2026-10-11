@@ -1,11 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import AnimatedContainer from "../components/AnimatedContainer";
 import { motion } from "framer-motion";
+import { Search, X } from "lucide-react";
+import AnimatedContainer from "../components/AnimatedContainer";
 import {
   useActivities,
   useDistinctTitles,
 } from "../hooks/useActivities";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { DatePicker } from "../components/ui/date-picker";
 
 function useDebounced(value, ms = 400) {
   const [v, setV] = useState(value);
@@ -14,6 +34,58 @@ function useDebounced(value, ms = 400) {
     return () => clearTimeout(t);
   }, [value, ms]);
   return v;
+}
+
+function getTaskStyle(duration) {
+  const hours = parseFloat(String(duration).split("h")[0]) || 0;
+  if (hours >= 4) {
+    return {
+      border: "border-r-4 border-purple-500",
+      bg: "bg-purple-900/20",
+      badge: "purple",
+      icon: "💪",
+    };
+  }
+  if (hours >= 2) {
+    return {
+      border: "border-r-4 border-orange-500",
+      bg: "bg-orange-900/20",
+      badge: "warning",
+      icon: "🎯",
+    };
+  }
+  if (hours >= 1) {
+    return {
+      border: "border-r-4 border-green-500",
+      bg: "bg-green-900/20",
+      badge: "success",
+      icon: "✅",
+    };
+  }
+  return {
+    border: "border-r-4 border-blue-500",
+    bg: "bg-blue-900/20",
+    badge: "blue",
+    icon: "⚡",
+  };
+}
+
+function ListSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <Card key={i}>
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 export default function Activities() {
@@ -32,59 +104,17 @@ export default function Activities() {
     dateFrom,
     dateTo,
     timeMode,
-    title: titleFilter,
+    title: titleFilter === "all" ? "" : titleFilter,
     minMinutes: minMinutes === "" ? null : Number(minMinutes),
     maxMinutes: maxMinutes === "" ? null : Number(maxMinutes),
   };
 
-  const { data: allActivities = [], isLoading: loading, isFetching } =
-    useActivities(filters);
+  const {
+    data: allActivities = [],
+    isLoading: loading,
+    isFetching,
+  } = useActivities(filters);
   const { data: titleOptions = [] } = useDistinctTitles();
-
-  const getTaskStyle = (duration) => {
-    const hours = parseFloat(String(duration).split("h")[0]) || 0;
-    const styles = {
-      4: {
-        containerClass: "border-r-4 border-purple-500 bg-purple-900/20",
-        icon: "💪 👨‍💻",
-        titleClass: "text-white",
-        timeClass: "text-purple-300",
-        durationClass: "bg-purple-900/30 text-purple-300",
-        descriptionClass: "text-gray-300",
-      },
-      2: {
-        containerClass: "border-r-4 border-orange-500 bg-orange-900/20",
-        icon: "🎯 ⚒️",
-        titleClass: "text-white",
-        timeClass: "text-orange-300",
-        durationClass: "bg-orange-900/30 text-orange-300",
-        descriptionClass: "text-gray-300",
-      },
-      1: {
-        containerClass: "border-r-4 border-green-500 bg-green-900/20",
-        icon: "✅ 📝",
-        titleClass: "text-white",
-        timeClass: "text-green-300",
-        durationClass: "bg-green-900/30 text-green-300",
-        descriptionClass: "text-gray-300",
-      },
-      0: {
-        containerClass: "border-r-4 border-blue-500 bg-blue-900/20",
-        icon: "⚡ 🎪",
-        titleClass: "text-white",
-        timeClass: "text-blue-300",
-        durationClass: "bg-blue-900/30 text-blue-300",
-        descriptionClass: "text-gray-300",
-      },
-    };
-    return hours >= 4
-      ? styles[4]
-      : hours >= 2
-        ? styles[2]
-        : hours >= 1
-          ? styles[1]
-          : styles[0];
-  };
 
   const groupedActivities = allActivities.reduce((acc, activity) => {
     const date = activity.date;
@@ -98,7 +128,7 @@ export default function Activities() {
     dateFrom ||
     dateTo ||
     timeMode !== "all" ||
-    titleFilter ||
+    (titleFilter && titleFilter !== "all") ||
     minMinutes !== "" ||
     maxMinutes !== "";
 
@@ -112,202 +142,183 @@ export default function Activities() {
     setMaxMinutes("");
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <AnimatedContainer>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xl font-bold text-white">بحث وتصفية</h2>
-            {isFetching && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-4">
+            <CardTitle className="text-xl">بحث وتصفية</CardTitle>
+            {isFetching && !loading && (
               <span className="text-xs text-indigo-300">جاري التحديث...</span>
             )}
-          </div>
+          </CardHeader>
+          <CardContent className="space-y-4" dir="rtl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>بحث نصي</Label>
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="عنوان أو وصف..."
+                    className="ps-9"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">بحث نصي</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="عنوان أو وصف..."
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>عنوان محدد</Label>
+                <Select
+                  value={titleFilter || "all"}
+                  onValueChange={(v) => setTitleFilter(v === "all" ? "" : v)}
+                  dir="rtl"
+                >
+                  <SelectTrigger dir="rtl" className="text-start">
+                    <SelectValue placeholder="الكل" />
+                  </SelectTrigger>
+                  <SelectContent dir="rtl">
+                    <SelectItem value="all">الكل</SelectItem>
+                    {titleOptions.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">
-                عنوان محدد
-              </label>
-              <select
-                value={titleFilter}
-                onChange={(e) => setTitleFilter(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">الكل</option>
-                {titleOptions.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="space-y-2">
+                <Label>نوع الوقت</Label>
+                <Select value={timeMode} onValueChange={setTimeMode} dir="rtl">
+                  <SelectTrigger dir="rtl" className="text-start">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent dir="rtl">
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="range">من وقت لوقت</SelectItem>
+                    <SelectItem value="estimated">تقديري</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">
-                نوع الوقت
-              </label>
-              <select
-                value={timeMode}
-                onChange={(e) => setTimeMode(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="all">الكل</option>
-                <option value="range">من وقت لوقت</option>
-                <option value="estimated">تقديري</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">من تاريخ</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">إلى تاريخ</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  أدنى دقائق
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={minMinutes}
-                  onChange={(e) => setMinMinutes(e.target.value)}
-                  placeholder="0"
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              <div className="space-y-2">
+                <Label>من تاريخ</Label>
+                <DatePicker
+                  value={dateFrom}
+                  onChange={setDateFrom}
+                  placeholder="من تاريخ"
                 />
               </div>
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  أقصى دقائق
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={maxMinutes}
-                  onChange={(e) => setMaxMinutes(e.target.value)}
-                  placeholder="—"
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+
+              <div className="space-y-2">
+                <Label>إلى تاريخ</Label>
+                <DatePicker
+                  value={dateTo}
+                  onChange={setDateTo}
+                  placeholder="إلى تاريخ"
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <p className="text-sm text-gray-400">
-              {allActivities.length} نتيجة
-            </p>
-            {hasFilters && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
-              >
-                مسح الفلاتر
-              </button>
-            )}
-          </div>
-        </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label>أدنى دقائق</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={minMinutes}
+                    onChange={(e) => setMinMinutes(e.target.value)}
+                    placeholder="0"
+                    dir="rtl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>أقصى دقائق</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={maxMinutes}
+                    onChange={(e) => setMaxMinutes(e.target.value)}
+                    placeholder="—"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-gray-400">
+                {loading ? "..." : `${allActivities.length} نتيجة`}
+              </p>
+              {hasFilters && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFilters}
+                >
+                  <X className="h-4 w-4" />
+                  مسح الفلاتر
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </AnimatedContainer>
 
-      {Object.keys(groupedActivities).length === 0 ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : Object.keys(groupedActivities).length === 0 ? (
         <AnimatedContainer>
-          <div className="bg-gray-800 rounded-lg p-8 shadow-lg text-center">
-            <div className="text-6xl mb-4">{hasFilters ? "🔍" : "📝"}</div>
-            <h2 className="text-2xl font-bold text-white mb-4">
-              {hasFilters ? "مفيش نتائج للفلتر ده" : "لا توجد أي أنشطة بعد"}
-            </h2>
-            {!hasFilters && (
-              <Link
-                to="/activity"
-                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-              >
-                + إضافة نشاط جديد
-              </Link>
-            )}
-          </div>
+          <Card>
+            <CardContent className="py-12 text-center">
+              <div className="text-5xl mb-4">{hasFilters ? "🔍" : "📝"}</div>
+              <h2 className="text-xl font-bold text-white mb-4">
+                {hasFilters ? "مفيش نتائج للفلتر ده" : "لا توجد أي أنشطة بعد"}
+              </h2>
+              {!hasFilters && (
+                <Button asChild>
+                  <Link to="/activity">+ إضافة نشاط جديد</Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </AnimatedContainer>
       ) : (
         Object.entries(groupedActivities).map(([date, dayActivities], i) => (
           <AnimatedContainer key={date} delay={i * 0.03}>
-            <div className="bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg border border-gray-700">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
-                {date}
-              </h2>
-              <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl">{date}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {dayActivities.map((activity) => {
                   const style = getTaskStyle(activity.duration);
                   return (
                     <motion.div
                       key={activity.id}
-                      className={`rounded-lg p-3 sm:p-4 transition-all hover:shadow-lg ${style.containerClass}`}
+                      className={`rounded-lg p-3 sm:p-4 transition-all hover:shadow-lg ${style.border} ${style.bg}`}
                     >
                       <Link to={`/activities/${activity.id}`} className="block">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="flex gap-1 shrink-0">
-                              {style.icon.split(" ").map((emoji, idx) => (
-                                <span key={idx} className="text-xl sm:text-2xl">
-                                  {emoji}
-                                </span>
-                              ))}
-                            </div>
-                            <h3
-                              className={`font-medium text-base sm:text-lg truncate ${style.titleClass}`}
-                            >
+                            <span className="text-xl shrink-0">{style.icon}</span>
+                            <h3 className="font-medium text-base sm:text-lg truncate text-white">
                               {activity.title}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`text-sm whitespace-nowrap ${style.timeClass}`}
-                            >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-300 whitespace-nowrap">
                               {activity.time}
-                            </div>
-                            <div
-                              className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${style.durationClass}`}
-                            >
+                            </span>
+                            <Badge variant={style.badge}>
                               {activity.duration}
-                            </div>
+                            </Badge>
                           </div>
                         </div>
                         {activity.description && (
-                          <p
-                            className={`mt-3 mr-12 text-sm line-clamp-2 ${style.descriptionClass}`}
-                          >
+                          <p className="mt-2 text-sm text-gray-300 line-clamp-2 me-8">
                             {activity.description}
                           </p>
                         )}
@@ -315,8 +326,8 @@ export default function Activities() {
                     </motion.div>
                   );
                 })}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </AnimatedContainer>
         ))
       )}

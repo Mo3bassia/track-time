@@ -1,50 +1,59 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import AnimatedContainer from "../components/AnimatedContainer";
 import { toast } from "sonner";
+import { Pencil, Trash2, ArrowRight } from "lucide-react";
+import AnimatedContainer from "../components/AnimatedContainer";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import {
   useActivities,
   useActivity,
   useDeleteActivity,
-  useUpdateActivity,
 } from "../hooks/useActivities";
-import {
-  calcDurationMinutes,
-  formatMinutes,
-  parseEstimatedInput,
-} from "../lib/activityHelpers";
+import { formatMinutes } from "../lib/activityHelpers";
 
 function getActivityStyle(duration) {
   const hours = parseFloat(String(duration || "0").split("h")[0]) || 0;
   if (hours >= 4) {
     return {
       icon: "💪",
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/20",
-      border: "border-purple-500",
+      badge: "purple",
+      ring: "ring-purple-500/40",
     };
   }
   if (hours >= 2) {
     return {
       icon: "🎯",
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/20",
-      border: "border-orange-500",
+      badge: "warning",
+      ring: "ring-orange-500/40",
     };
   }
   if (hours >= 1) {
     return {
       icon: "✅",
-      color: "text-green-500",
-      bgColor: "bg-green-500/20",
-      border: "border-green-500",
+      badge: "success",
+      ring: "ring-emerald-500/40",
     };
   }
   return {
     icon: "⚡",
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/20",
-    border: "border-blue-500",
+    badge: "blue",
+    ring: "ring-blue-500/40",
   };
 }
 
@@ -53,472 +62,219 @@ export default function ActivityDetails() {
   const navigate = useNavigate();
   const { data: activity, isLoading: loading } = useActivity(id);
   const { data: allActivities = [] } = useActivities();
-  const updateMutation = useUpdateActivity();
   const deleteMutation = useDeleteActivity();
-
-  const [editMode, setEditMode] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [timeMode, setTimeMode] = useState("range");
-  const [formData, setFormData] = useState({
-    title: "",
-    date: "",
-    startTime: "09:00",
-    endTime: "10:00",
-    estHours: "1",
-    estMinutes: "0",
-    description: "",
-  });
-  const showMsg = (message, type = "success") => {
-    if (type === "error") toast.error(message);
-    else toast.success(message);
-  };
-
-  useEffect(() => {
-    if (!activity) return;
-    setTimeMode(activity.timeMode || "range");
-    const mins = activity.durationMinutes || 0;
-    setFormData({
-      title: activity.title,
-      date: activity.activityDate || "",
-      startTime: activity.startTime || "09:00",
-      endTime: activity.endTime || "10:00",
-      estHours: String(Math.floor(mins / 60)),
-      estMinutes: String(mins % 60),
-      description: activity.description || "",
-    });
-  }, [activity]);
 
   const history = useMemo(() => {
     if (!activity) return [];
     return allActivities
       .filter((a) => a.title === activity.title)
-      .map((a) => ({
-        id: a.id,
-        date: a.date,
-        time: a.time,
-        duration: a.duration,
-        durationMinutes: a.durationMinutes || 0,
-      }));
+      .sort((a, b) => String(b.activityDate).localeCompare(String(a.activityDate)));
   }, [allActivities, activity]);
-
-  const totalTrackedMinutes = useMemo(
-    () => history.reduce((s, h) => s + h.durationMinutes, 0),
-    [history],
-  );
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    let durationMinutes = 0;
-    let startTime = null;
-    let endTime = null;
-
-    if (timeMode === "range") {
-      durationMinutes = calcDurationMinutes(
-        formData.startTime,
-        formData.endTime,
-      );
-      if (durationMinutes <= 0) {
-        showMsg("وقت الانتهاء لازم يكون بعد وقت البدء", "error");
-        return;
-      }
-      startTime = formData.startTime;
-      endTime = formData.endTime;
-    } else {
-      durationMinutes = parseEstimatedInput(
-        formData.estHours,
-        formData.estMinutes,
-      );
-      if (durationMinutes <= 0) {
-        showMsg("حط مدة تقديرية أكبر من صفر", "error");
-        return;
-      }
-    }
-
-    try {
-      await updateMutation.mutateAsync({
-        id,
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        activityDate: formData.date,
-        startTime,
-        endTime,
-        durationMinutes,
-        timeMode,
-      });
-      setEditMode(false);
-      showMsg("تم تحديث النشاط بنجاح");
-    } catch (err) {
-      showMsg(err?.message || "فشل التحديث", "error");
-    }
-  };
 
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(id);
-      showMsg("تم حذف النشاط بنجاح");
-      setTimeout(() => navigate("/activities", { replace: true }), 600);
+      toast.success("تم حذف النشاط بنجاح");
+      navigate("/activities", { replace: true });
     } catch (err) {
-      showMsg(err?.message || "فشل الحذف", "error");
+      toast.error(err?.message || "فشل الحذف");
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500" />
+      <div className="max-w-3xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-56 w-full" />
       </div>
     );
   }
 
   if (!activity) {
     return (
-      <AnimatedContainer>
-        <div className="bg-gray-800 rounded-lg p-8 text-center">
-          <p className="text-white mb-4">لم يتم العثور على النشاط</p>
-          <Link to="/activities" className="text-indigo-400">
-            العودة للأنشطة
-          </Link>
-        </div>
-      </AnimatedContainer>
+      <Card className="max-w-md mx-auto">
+        <CardContent className="pt-8 text-center space-y-4">
+          <p className="text-foreground">لم يتم العثور على النشاط</p>
+          <Button asChild variant="outline">
+            <Link to="/activities">العودة للأنشطة</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   const style = getActivityStyle(activity.duration);
 
   return (
-    <>
+    <AnimatedContainer>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+            <Link to="/activities">
+              <ArrowRight className="h-4 w-4" />
+              الأنشطة
+            </Link>
+          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/activities/${id}/edit`}>
+                <Pencil className="h-4 w-4" />
+                تعديل
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+              حذف
+            </Button>
+          </div>
+        </div>
 
-      <div className="mb-4">
-        <Link
-          to="/activities"
-          className="flex items-center text-indigo-400 hover:text-indigo-300 transition-colors"
-        >
-          ← العودة إلى الأنشطة
-        </Link>
-      </div>
-
-      <AnimatedContainer>
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-          {!editMode ? (
-            <div>
-              <div className="flex flex-wrap justify-between items-start gap-3 mb-6">
-                <div className="flex items-center gap-3">
-                  <span className={`text-3xl ${style.color}`}>{style.icon}</span>
-                  <div>
-                    <h1 className="text-2xl font-bold text-white">
-                      {activity.title}
-                    </h1>
-                    <p className="text-gray-400">{activity.date}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditMode(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
-                  >
-                    تعديل
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(true)}
-                    className="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-lg"
-                  >
-                    حذف
-                  </button>
-                </div>
-              </div>
-
-              <div
-                className={`p-4 rounded-lg mb-6 ${style.bgColor} border ${style.border}`}
-              >
-                <div className="flex flex-wrap gap-y-3 gap-x-6">
-                  <div>
-                    <div className="text-gray-400 text-sm">الوقت</div>
-                    <div className="text-white font-medium">{activity.time}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm">المدة</div>
-                    <div className="text-white font-medium">
-                      {activity.duration}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm">النوع</div>
-                    <div className="text-white font-medium">
-                      {activity.timeMode === "estimated"
-                        ? "تقديري"
-                        : "من / إلى"}
-                    </div>
-                  </div>
-                  {history.length > 1 && (
-                    <>
-                      <div>
-                        <div className="text-gray-400 text-sm">
-                          إجمالي الوقت المتابع
-                        </div>
-                        <div className="text-white font-medium">
-                          {formatMinutes(totalTrackedMinutes)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-sm">مرات التسجيل</div>
-                        <div className="text-white font-medium">
-                          {history.length} مرة
-                        </div>
-                      </div>
-                    </>
+        <Card className={`ring-1 ${style.ring}`}>
+          <CardHeader className="space-y-4">
+            <div className="flex items-start gap-3">
+              <span className="text-3xl shrink-0">{style.icon}</span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <CardTitle className="text-2xl sm:text-3xl leading-snug">
+                  {activity.title}
+                </CardTitle>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <span>{activity.date}</span>
+                  <span className="opacity-40">·</span>
+                  <span>{activity.time}</span>
+                  <Badge variant={style.badge}>{activity.duration}</Badge>
+                  {activity.timeMode === "estimated" && (
+                    <Badge variant="outline">تقديري</Badge>
                   )}
                 </div>
               </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {activity.description ? (
+              <div className="rounded-lg bg-muted/40 border border-border/60 p-4">
+                <p className="text-sm text-muted-foreground mb-1">الوصف</p>
+                <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                  {activity.description}
+                </p>
+              </div>
+            ) : null}
 
-              {activity.description && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-white mb-2">الوصف</h3>
-                  <div className="bg-gray-700 p-4 rounded-lg text-gray-200 whitespace-pre-wrap">
-                    {activity.description}
-                  </div>
-                </div>
-              )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="rounded-lg border border-border/70 bg-background/40 p-3">
+                <p className="text-xs text-muted-foreground mb-1">المدة</p>
+                <p className="font-semibold">
+                  {formatMinutes(activity.durationMinutes)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-background/40 p-3">
+                <p className="text-xs text-muted-foreground mb-1">التاريخ</p>
+                <p className="font-semibold text-sm">{activity.date}</p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-background/40 p-3 col-span-2 sm:col-span-1">
+                <p className="text-xs text-muted-foreground mb-1">الوقت</p>
+                <p className="font-semibold text-sm">{activity.time}</p>
+              </div>
+            </div>
 
-              {history.length > 1 && (
-                <div className="mt-6">
-                  <button
+            {history.length > 1 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-semibold text-foreground">
+                    سجل نفس النشاط ({history.length})
+                  </h3>
+                  <Button
                     type="button"
-                    className="text-indigo-400 hover:text-indigo-300 text-sm"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowHistory((v) => !v)}
                   >
-                    {showHistory ? "إخفاء السجل" : "عرض سجل النشاط"}
-                  </button>
-                  {showHistory && (
-                    <div className="mt-3 overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-gray-700">
-                            <th className="text-right py-2 px-3 text-gray-300">
-                              التاريخ
-                            </th>
-                            <th className="text-right py-2 px-3 text-gray-300">
-                              الوقت
-                            </th>
-                            <th className="text-right py-2 px-3 text-gray-300">
-                              المدة
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {history.map((item) => (
-                            <tr
-                              key={item.id}
-                              className={
-                                item.id === id
-                                  ? "bg-indigo-900/20 border-l-4 border-indigo-500"
-                                  : ""
-                              }
-                            >
-                              <td className="py-2 px-3 text-white">
+                    {showHistory ? "إخفاء" : "عرض"}
+                  </Button>
+                </div>
+                {showHistory && (
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50 text-muted-foreground">
+                        <tr>
+                          <th className="text-start py-2 px-3 font-medium">
+                            التاريخ
+                          </th>
+                          <th className="text-start py-2 px-3 font-medium">
+                            الوقت
+                          </th>
+                          <th className="text-start py-2 px-3 font-medium">
+                            المدة
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((item) => (
+                          <tr
+                            key={item.id}
+                            className={
+                              item.id === id
+                                ? "bg-primary/10 border-s-2 border-primary"
+                                : "border-t border-border/60"
+                            }
+                          >
+                            <td className="py-2 px-3">
+                              <Link
+                                to={`/activities/${item.id}`}
+                                className="hover:text-primary"
+                              >
                                 {item.date}
-                              </td>
-                              <td className="py-2 px-3 text-gray-200">
-                                {item.time}
-                              </td>
-                              <td className="py-2 px-3 text-gray-200">
-                                {item.duration}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {confirmDelete && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
-                    <h3 className="text-xl font-bold text-white mb-4">
-                      تأكيد الحذف
-                    </h3>
-                    <p className="text-gray-300 mb-6">
-                      متأكد إنك عايز تحذف النشاط؟ مش هترجع.
-                    </p>
-                    <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDelete(false)}
-                        className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
-                      >
-                        إلغاء
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDelete}
-                        disabled={deleteMutation.isPending}
-                        className="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-lg"
-                      >
-                        {deleteMutation.isPending ? "جاري..." : "حذف"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white">تعديل النشاط</h2>
-                <button
-                  type="button"
-                  onClick={() => setEditMode(false)}
-                  className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
-                >
-                  إلغاء
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-gray-300 text-sm mb-2">
-                    العنوان
-                  </label>
-                  <input
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm mb-2">
-                    التاريخ
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTimeMode("range")}
-                    className={`py-2 rounded-lg text-sm ${
-                      timeMode === "range"
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-700 text-gray-300"
-                    }`}
-                  >
-                    من وقت لوقت
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTimeMode("estimated")}
-                    className={`py-2 rounded-lg text-sm ${
-                      timeMode === "estimated"
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-700 text-gray-300"
-                    }`}
-                  >
-                    مدة تقديرية
-                  </button>
-                </div>
-
-                {timeMode === "range" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-300 text-sm mb-2">
-                        بدء
-                      </label>
-                      <input
-                        type="time"
-                        name="startTime"
-                        value={formData.startTime}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 text-sm mb-2">
-                        انتهاء
-                      </label>
-                      <input
-                        type="time"
-                        name="endTime"
-                        value={formData.endTime}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-300 text-sm mb-2">
-                        ساعات
-                      </label>
-                      <input
-                        type="number"
-                        name="estHours"
-                        min="0"
-                        value={formData.estHours}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 text-sm mb-2">
-                        دقائق
-                      </label>
-                      <input
-                        type="number"
-                        name="estMinutes"
-                        min="0"
-                        max="59"
-                        value={formData.estMinutes}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                      />
-                    </div>
+                              </Link>
+                            </td>
+                            <td className="py-2 px-3 text-muted-foreground">
+                              {item.time}
+                            </td>
+                            <td className="py-2 px-3">{item.duration}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-                <div>
-                  <label className="block text-gray-300 text-sm mb-2">
-                    الوصف
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows="4"
-                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-3 px-6 rounded-lg w-full"
-                >
-                  {updateMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </AnimatedContainer>
-    </>
+        <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>تأكيد الحذف</DialogTitle>
+              <DialogDescription>
+                متأكد إنك عايز تحذف «{activity.title}»؟ مش هترجع.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setConfirmDelete(false)}
+              >
+                إلغاء
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deleteMutation.isPending}
+                onClick={handleDelete}
+              >
+                {deleteMutation.isPending ? "جاري..." : "حذف"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AnimatedContainer>
   );
 }

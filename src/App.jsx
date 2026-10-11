@@ -6,6 +6,7 @@ import Stats from "./pages/Stats";
 import Activity from "./pages/Activity";
 import Activities from "./pages/Activities";
 import ActivityDetails from "./pages/ActivityDetails";
+import ActivityEdit from "./pages/ActivityEdit";
 import Login from "./pages/Login";
 import RequireAuth from "./components/RequireAuth";
 
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/stats" element={<Stats />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/activities" element={<Activities />} />
+          <Route path="/activities/:id/edit" element={<ActivityEdit />} />
           <Route path="/activities/:id" element={<ActivityDetails />} />
         </Route>
 
