@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { DatePicker } from "../components/ui/date-picker";
+import { WeekRangeNav, getWeekRangeByOffset } from "../components/WeekRangeNav";
 import { cn } from "../lib/utils";
 
 function useDebounced(value, ms = 400) {
@@ -104,12 +105,21 @@ export default function Activities() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  /** null = custom/all dates, number = week offset (Sat–Fri) */
+  const [weekOffset, setWeekOffset] = useState(null);
   const [timeMode, setTimeMode] = useState("all");
   const [titleFilter, setTitleFilter] = useState("");
   const [minMinutes, setMinMinutes] = useState("");
   const [maxMinutes, setMaxMinutes] = useState("");
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const applyWeekOffset = (offset) => {
+    const range = getWeekRangeByOffset(offset);
+    setWeekOffset(offset);
+    setDateFrom(range.from);
+    setDateTo(range.to);
+  };
 
   const debouncedSearch = useDebounced(searchTerm, 400);
 
@@ -230,6 +240,7 @@ export default function Activities() {
     setSearchTerm("");
     setDateFrom("");
     setDateTo("");
+    setWeekOffset(null);
     setTimeMode("all");
     setTitleFilter("");
     setMinMinutes("");
@@ -292,13 +303,69 @@ export default function Activities() {
                 placeholder="عنوان أو وصف..."
               />
             </div>
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+              <Label>الأسبوع (سبت–جمعة)</Label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={weekOffset === null && !dateFrom ? "default" : "outline"}
+                  className="h-8"
+                  onClick={() => {
+                    setWeekOffset(null);
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                >
+                  كل الأيام
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={weekOffset === 0 ? "default" : "outline"}
+                  className="h-8"
+                  onClick={() => applyWeekOffset(0)}
+                >
+                  هذا الأسبوع
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={weekOffset === -1 ? "default" : "outline"}
+                  className="h-8"
+                  onClick={() => applyWeekOffset(-1)}
+                >
+                  الأسبوع الماضي
+                </Button>
+              </div>
+              {weekOffset !== null ? (
+                <WeekRangeNav
+                  offset={weekOffset}
+                  onOffsetChange={applyWeekOffset}
+                  from={dateFrom}
+                  to={dateTo}
+                />
+              ) : null}
+            </div>
             <div className="space-y-1.5">
               <Label>من تاريخ</Label>
-              <DatePicker value={dateFrom} onChange={setDateFrom} />
+              <DatePicker
+                value={dateFrom}
+                onChange={(v) => {
+                  setWeekOffset(null);
+                  setDateFrom(v);
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>إلى تاريخ</Label>
-              <DatePicker value={dateTo} onChange={setDateTo} />
+              <DatePicker
+                value={dateTo}
+                onChange={(v) => {
+                  setWeekOffset(null);
+                  setDateTo(v);
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>نوع الوقت</Label>

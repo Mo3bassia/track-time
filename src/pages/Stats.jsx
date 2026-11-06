@@ -16,6 +16,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import AnimatedContainer from "../components/AnimatedContainer";
+import { WeekRangeNav, getWeekRangeByOffset } from "../components/WeekRangeNav";
 import { useActivities } from "../hooks/useActivities";
 import { formatMinutes } from "../lib/activityHelpers";
 
@@ -48,7 +49,17 @@ function CustomTooltip({ active, payload, label, valuePrefix }) {
 export default function Stats() {
   const { data: activities = [], isLoading: loading } = useActivities();
   const [selectedDate, setSelectedDate] = useState("all");
+  /** null = not in week mode; number = week offset (Sat–Fri) */
+  const [weekOffset, setWeekOffset] = useState(null);
+  const [weekRange, setWeekRange] = useState({ from: "", to: "" });
   const [selectedActivity, setSelectedActivity] = useState("");
+
+  const applyWeekOffset = (offset) => {
+    const range = getWeekRangeByOffset(offset);
+    setWeekOffset(offset);
+    setWeekRange(range);
+    setSelectedDate("week");
+  };
 
   const availableDates = useMemo(() => {
     const dateMap = {};
@@ -71,12 +82,19 @@ export default function Stats() {
 
   const filtered = useMemo(() => {
     if (selectedDate === "all") return activities;
+    if (selectedDate === "week" && weekRange.from && weekRange.to) {
+      return activities.filter((a) => {
+        const iso = a.activityDate || a.dateMetadata?.dateKey || "";
+        if (!iso) return false;
+        return iso >= weekRange.from && iso <= weekRange.to;
+      });
+    }
     return activities.filter((a) => {
       if (a.dateMetadata?.dateKey === selectedDate) return true;
       if (a.activityDate === selectedDate) return true;
       return a.date === selectedDate;
     });
-  }, [activities, selectedDate]);
+  }, [activities, selectedDate, weekRange]);
 
   const timeDistribution = useMemo(() => {
     const dist = {};
@@ -239,12 +257,16 @@ export default function Stats() {
   return (
     <div className="space-y-8">
       <AnimatedContainer>
-        <div className="bg-card rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-foreground mb-4">اختر التاريخ</h2>
+        <div className="bg-card rounded-lg p-6 shadow-lg space-y-4">
+          <h2 className="text-xl font-bold text-foreground">اختر التاريخ</h2>
+
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setSelectedDate("all")}
+              onClick={() => {
+                setSelectedDate("all");
+                setWeekOffset(null);
+              }}
               className={`px-3 py-2 rounded-md text-sm font-medium ${
                 selectedDate === "all"
                   ? "bg-indigo-600 text-foreground"
@@ -253,11 +275,36 @@ export default function Stats() {
             >
               كل الفترات
             </button>
+            <button
+              type="button"
+              onClick={() => applyWeekOffset(0)}
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                selectedDate === "week" && weekOffset === 0
+                  ? "bg-indigo-600 text-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              هذا الأسبوع
+            </button>
+            <button
+              type="button"
+              onClick={() => applyWeekOffset(-1)}
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                selectedDate === "week" && weekOffset === -1
+                  ? "bg-indigo-600 text-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              الأسبوع الماضي
+            </button>
             {availableDates.map((d) => (
               <button
                 key={d.key}
                 type="button"
-                onClick={() => setSelectedDate(d.key)}
+                onClick={() => {
+                  setSelectedDate(d.key);
+                  setWeekOffset(null);
+                }}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   selectedDate === d.key
                     ? "bg-indigo-600 text-foreground"
@@ -271,6 +318,15 @@ export default function Stats() {
               </button>
             ))}
           </div>
+
+          {selectedDate === "week" && weekOffset !== null ? (
+            <WeekRangeNav
+              offset={weekOffset}
+              onOffsetChange={applyWeekOffset}
+              from={weekRange.from}
+              to={weekRange.to}
+            />
+          ) : null}
         </div>
       </AnimatedContainer>
 
